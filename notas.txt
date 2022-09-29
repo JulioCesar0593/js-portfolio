@@ -1,0 +1,333 @@
+- Instalacion de webpack a nuestro repositorio de manera local y en modo dependencia "-D" :
+
+    ->npm install webpack webpack-cli -D
+
+- Iniciar el modo de desarrollo de webpack :
+
+    ->npx webpack --mode development
+
+- Iniciar el modo produccion:
+
+    ->npx webpack --mode  production
+
+
+- Creamos un archivo de configuracion de webpack "webpack.config.js" para la configuración :
+
+    //Declaracion de la variable path la cual ya se encuetra en el paquede de webpath
+    const path =  require ('path');
+
+    //Declaracion del módulo de exportación
+    module.exports = {
+
+        //Declaracion del archivo de origen de nuestro proyecto el cual va a tomar como báse
+        entry: './src/index.js',
+
+        //Declaracion del archivo de salida en este caso se utiliza la carpeta dist que es la que se usa comunmente
+        // "filename:" se declara el mombre del archivo en donde se genera la informacion resultante
+        output: {
+            path: path.resolve(__dirname,'dist'),
+            filename: 'main.js',
+        },
+        resolve:{
+            extensions: ['.js']
+        }
+    }
+
+- Ejecutamos este comando para que webpack lea la configuracion realizada en el archivo creado antereiormente :
+
+    >npx webpack --mode production --config webpack.config.js
+
+- Para crear un comando interno en nuestro proyecto podemos ditigirnos al archivo package.json y en la linea de scripts lo agregamos:
+
+    "scripts": {
+        "build": "webpack --mode production"
+    },
+
+    Ejecución en consola
+        >npm run build
+
+- Instalacion de babel:
+
+    >npm install babel-loader @babel/core @babel/preset-env @babel/plugin-transform-runtime -D
+
+- Configuracion dee babel mediante la creacion de un archivo .babelrc con esa configuracion :
+
+    {
+        //Permite trabajar con javascript moderno
+        "presets":[
+        "@babel/preset-env"
+        ],
+
+        //Plugins necesarios para que babel lea las funciones de asincronismo de nuestra aplicacion 
+        "plugins":[
+
+            "@babel/plugin-transform-runtime"
+        ]
+    }
+
+- Configuración en el archivo webpack.config.js, para usar babel  :
+
+        module: {
+            rules: [
+                {
+                    //Expresion regular que busca los archivos con extencion js ó mjs (Modulos js)
+                    test: /\.m?js$/,
+
+                    //Expresion que indica que excluya todos los modulos de node
+                    exclude: /node-modules/,
+
+                    //indica el loader que se va a utilizar
+                    use:{
+                        loader: "babel-loader"
+                    }
+                }
+            ]
+        }
+
+- Instalacion de plugin de webpack con html:
+
+    >npm install html-webpack-plugin -D
+
+- Configuracion del plugin en webpack.config.js:
+
+    //Agregamos una constante
+    const HtmlWebpackPlugin = require('html-webpack-plugin');
+
+- Agregamos un plugin en una seccion de plugins :
+
+            plugins:[
+            new HtmlWebpackPlugin({
+                //Isercion de los elementos
+                inject: true,
+                //Carga el templete
+                template: './public/index.html',
+                //Resultado de la preparacion de html
+                filename: './index.html'
+            })
+        ]
+
+
+- Se eliminan las ligas que conectan con javascript en el index de html ya que las genera el plugin de html :
+  <!-- <script type="module" src="../src//index.js"></script>-->
+
+- Instalacion del plugin de webpack para archivos CSS :
+
+    >npm install mini-css-extract-plugin css-loader -D
+
+- Una vez instaladas los plugins de webpack-css procedemos a eliminar las llamadas de los archivos css del index:
+
+- Para poder generar el código que se va a poner en el archivo de index se necesita importar en el archivo de index.js:
+
+    import './styles/main.css';
+
+- Configuracion de el archivo de webpack:
+
+    //Agregamos la  variable en la cabecera para poder llamar la libreria
+    const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+
+
+            //Agregamos una nueva regla  en el apartado de rules
+                {
+                    //Se crea las reglas de que archivos se van a leer
+                    test: /\.css$/i,
+                    use:[
+                        MiniCssExtractPlugin.loader, 'css-loader'
+                    ]
+                }
+
+
+            //Agregamos el plugin de css
+            new MiniCssExtractPlugin(),
+
+- Instalacion de un pre-procesador de estilos Ej. Stylus:
+
+    >npm install stylus stylus-loader -D
+
+- Modificamos los valoores de las reglas para que pueda leer los archivos de stylus:
+
+                {
+                    //Se crea las reglas de que archivos se van a leer
+                    test: /\.css|.styl$/i,
+                    use:[
+                        MiniCssExtractPlugin.loader, 
+                            'css-loader',
+                            'stylus-loader'
+                    ]
+                }
+
+- Copiar archivos de la carpera src a la carpeta de distribucion :
+
+    >npm install copy-webpack-plugin -D
+
+- Configuracion en el archivo de webpack :
+
+            //Agregamos en el apartado de plugin la llamada del plugin
+            new CopyPlugin({
+                patterns:[
+                    {
+                        //De donde se saca la informacion (Origen)
+                        from: path.resolve(__dirname, 'src', 'assets/images'),
+                        //Hacia donde se envian los archivos (Destino)
+                        to: 'assets/images'
+                    }
+                ]
+            })
+
+- Se modifican las llamadas a los archivos en el template :
+
+        <a href="https://twitter.com/gndx">
+            <img src="../src/assets/images/twitter.png" />
+        </a>
+-   _________Se llama directamente de la carpeta de assets________ :
+        <a href="https://twitter.com/gndx">
+            <img src="assets/images/twitter.png" />
+          </a>
+
+- Generar las imagen en el proyecto:
+
+    //Se genera una nueva regla 
+
+        {
+            test: /\.png/,
+            type:'asset/resource'
+        }
+
+- para tener una mejor optimizacion se genere la importacion de las imagenes desde el templete:
+
+        import github from '../assets/images/github.png';
+
+    <!-- Se remplazan las url`s  por la variable declarada con la importacion-->
+
+        <a href="https://github.com/gndx">
+            <img src="${github}" />
+        </a>
+
+- Optimizacion de fuentes de forma local:
+
+    Url de fuentes de google .woff
+    "http://google-webfonts-helper.herokuapp.com/fonts/ubuntu?subsets=cyrillic,latin"
+
+    /* Para usar las fuentes de manera local se necesitan descargar las fuentes en formato woff*/
+
+    /* Para poder usar las fuentes se necesitan declarar en el archivo css de nuestro proyecto  */
+
+    @font-face{
+        font-family:ubuntu;
+        src: url('../assets/fonts/ubuntu-regular.woff2') format(woff2),
+            url('../assets/fonts/ubuntu-regular.woff') format(woff);
+        font-weight: 400;
+        font-style: normal;
+    }
+
+- Instalar las dependencias para cargar las url´s de las fuentes y cargarlas de forma local:
+
+    >npm install url-loader file-loader -D
+
+- Agregar fuentes de manera local desde el CSS:
+
+    @font-face{
+        font-family: Ubuntu;
+        src: url('../assets/fonts/ubuntu-regular.woff2') format(woff2),
+            url('../assets/fonts/ubuntu-regular.woff') format(woff);
+        font-weight: 400;
+        font-style: normal;
+    }
+
+- Modificacion de el archivo webpack.config en el apartado de rules :
+
+                    {
+                    test:/\.(woff|woff2)$/, //Tipo de formato de fuente a leer
+                    use:{
+                        loader:'url-loader',
+                        options:{
+                            limit: 10000 , //Tamaño
+                            mimetype: 'aplication/font-woff', // tipo de formato
+                            name: '[name].[ext]', //Nombre y extencion del archivo
+                            outputPath: './assets/fonts/', //carpeta de salida
+                            publicPath: './assets/fonts/', //carpeta publica
+                            esModule: false, //se coloca false por que no se va a tilizar
+                        },
+                    }
+
+                }
+
+- Modificams el apartado de output para el guardado de las imagenes:
+
+    assetModuleFilename: 'assets/images/[hash][ext][query]'
+
+- Asignacion de alias para mejorar las rutas en el apartado de rules en el archivo webpack:
+
+            alias:{
+                '@utils': path.resolve( __dirname, "src/utils/"),
+                '@templates': path.resolve( __dirname, "src/templates/"),
+                '@styles': path.resolve( __dirname, "src/styles/"),
+                '@images': path.resolve( __dirname, "src/assets/images/"),
+            }
+
+- Creacion de variables de entorno :
+-   Intalacion de los paquetes para usar los paquetes de entorno:
+
+     npm install dotenv-webpack -D
+
+-Para poder usar las variables de entorno se tienen que crear dos archivos donde se van a declarar las variables:
+
+    ".env"  Se van a declarar las variables de entorno a utilizar en nuestro proyecto.
+            Ej. API = https://randomuser.me/api/
+
+    ".env-example" Se declaran igual las variables pero si la asignacion de valores.
+            Ej. API =
+
+-Una vez agregadas las variables editatremos el archivo de webpack agregando una nueva variable para cargar loa libreria:
+
+    const Dotenv = require('dotenv-webpack');
+
+- Y agregaremos en la parte de plugins el llamado de la misma :
+
+    new Dotenv(),
+
+-Finalmente editaremos el llamado de la API desde el archivo donde se requiere :
+    //const API = 'https://randomuser.me/api/';
+    const API = process.env.API;
+
+
+-Modo development en webpack:
+
+-Para mostrar solo el mode desarrollo al momento de ejecutar el modo dev creamoun un archivo nuevo:
+    "webpack.config.dev.js"
+
+-Copiaremos todo el contenido del archivo webpack para despues eliminar todo los que tiene que ver con a optimizacion de css y js:
+
+    código que se elimina 
+
+        const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
+        const TerserPlugin = require('terser-webpack-plugin');
+
+        optimization: {
+            minimize : true,
+            minimizer:[
+                new CssMinimizerPlugin(),
+                new TerserPlugin(),
+            ]
+        }
+
+- Se agrega una nueva linea de código en donde le indicaremos que estamos en el modo desarrollo:
+
+    mode : 'development',
+
+-Finalmente editamos el archivo package.json para llamar nuestra nueva configuracion: 
+
+        "dev": "webpack --mode development"
+        "dev": "webpack --config webpack.config.dev.js"
+
+-Limpiar archivos no necesarios despues de cada compilacion :
+-Instalamos un nuevo plugin:
+
+    npm install clean-webpack-plugin -D
+
+-Lo agregamos la libreria y la iniciamos en el apartado de plugins:
+
+    const { CleanWebpackPlugin } = require('clean-webpack-plugin');
+            new CleanWebpackPlugin(),
+
+-Poner nuestro proyecto en modo watch:
+        watch: true,
